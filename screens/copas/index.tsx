@@ -22,7 +22,7 @@ import { FormControl, FormControlHelper, FormControlHelperText, FormControlLabel
 import { HStack } from "@/components/ui/hstack";
 import { Grid, GridItem } from "@/components/ui/grid";
 import { useLocalSearchParams } from "expo-router";
-import {  useStore , addDataCopas } from "@/lib/Store";
+import {  useStore , addDataCopas, fetchCopas } from "@/lib/Store";
 
 const SplashScreenWithLeftBackground = () => {
     const router = useRouter();
@@ -32,8 +32,29 @@ const SplashScreenWithLeftBackground = () => {
     const inputRef = useRef(null);
     const [toastId, setToastId] = useState(0);
     const [arrCopy, setArrCopy] = useState([]);
+    const [clipboardPermission, setClipboardPermission] = useState(false);
+    
     const { sort_id } = useLocalSearchParams();
     const { copasData } = useStore({ sort_id })
+    const showNewToast = () => {
+        const newId = Math.random()
+        toast.show({
+          id: newId,
+          placement: "top",
+          duration: 3000,
+          render: ({ id }) => {
+            const uniqueToastId = "toast-" + id
+            return (
+              <Toast nativeID={uniqueToastId} action="error" variant="solid">
+                <ToastTitle>Error!</ToastTitle>
+                <ToastDescription>
+                  Permission denied to access clipboard
+                </ToastDescription>
+              </Toast>
+            )
+          },
+        })
+    }
     const copyToClipboard = (item:string) => {
         Clipboard.setStringAsync(item);
         toast.show({
@@ -118,11 +139,48 @@ const SplashScreenWithLeftBackground = () => {
         setArrCopy(copasData);
     }, [copasData]);
 
-    useEffect(() => {
+    useEffect(async () => {
+        const datas = await fetchCopas(sort_id);
+        if (datas === undefined) {
+            // router.push("/");
+        }
+
         // if (error) throw error;
-        // console.log('sort_id index', sort_id);
+        console.log('sort_id datas 121', datas);
+        const checkClipboardPermission = async () => {
+            try {
+                // const text = await Clipboard.getStringAsync();
+                // setText(text);
+                setClipboardPermission(true);
+            } catch (error) {
+                Alert.alert('Error', 'Failed to access clipboard');
+            }
+            // const text = await Clipboard.getStringAsync();
+            // setText(text);
+        };
+
+        checkClipboardPermission();
+        setText(text);
 
     }, [sort_id]);
+
+    const pasteAction = async () => {
+        try {
+            const text = await Clipboard.getStringAsync();
+            setText(text);
+        } catch (error) {
+            showNewToast();
+            Alert.alert('Error', 'Failed to access clipboard');
+        }
+    }
+
+    const renderButton = () => {
+        console.log('clipboardPermission', clipboardPermission);
+        if (clipboardPermission) {
+            return (<Button variant="outline" action="secondary" onPress={pasteAction}><ButtonText  className="font-medium">Paste</ButtonText></Button>)
+        }
+        return (<Button variant="outline" action="secondary" isDisabled={true}><ButtonText  className="font-medium">Paste</ButtonText></Button>)
+    }
 
     const renderList = () => {
         const temp = copasData.map((item, index) => {
@@ -209,55 +267,55 @@ const SplashScreenWithLeftBackground = () => {
             )}
             <VStack className="w-full" space="lg">
                 <VStack space="xs">
-                <FormControl size="sm">
-                    <FormControlLabel>
-                        <FormControlLabelText>Type what you want to Copy and Paste.</FormControlLabelText>
-                    </FormControlLabel>
-                    {/* <Text className="text-typography-500 leading-1">Type what you want to Copy and Paste.</Text> */}
-                    <Textarea className="text-center" 
-                            ref={inputRef}
-                            isFocused={true}>
-                        <TextareaInput 
-                            type= "text"
-                            value={text}
-                            onChangeText={(newText) => setText(newText)}
-                            onKeyPress={(e) => {
-                                if (e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+                    <FormControl size="sm">
+                        <FormControlLabel>
+                            <FormControlLabelText>Type what you want to Copy and {renderButton()}.</FormControlLabelText>
+                        </FormControlLabel>
+                        {/* <Text className="text-typography-500 leading-1">Type what you want to Copy and Paste.</Text> */}
+                        <Textarea className="text-center" 
+                                ref={inputRef}
+                                isFocused={true}>
+                            <TextareaInput 
+                                type= "text"
+                                value={text}
+                                onChangeText={(newText) => setText(newText)}
+                                onKeyPress={(e) => {
+                                    if (e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+                                        addData();
+                                    }
+                                }}
+                            />
+                        </Textarea>
+                        <FormControlHelper>
+                            <FormControlHelperText>Shift and Enter add new line</FormControlHelperText>
+                        </FormControlHelper>
+                        <ButtonGroup>
+                            <Button 
+                                size="xs" variant="solid" action="positive"
+                                onPress={() => {
                                     addData();
-                                }
-                            }}
-                        />
-                    </Textarea>
-                    <FormControlHelper>
-                        <FormControlHelperText>Shift and Enter add new line</FormControlHelperText>
-                    </FormControlHelper>
-                    <ButtonGroup>
-                        <Button 
+                                }}>
+                                <ButtonText className="font-medium">Add Data</ButtonText>
+                                {/* <ButtonSpinner /> */}
+                                <ButtonIcon as={AddIcon} />
+                                </Button>
+                        </ButtonGroup>
+                        {/* <Button
                             size="xs" variant="solid" action="positive"
                             onPress={() => {
                                 addData();
-                            }}>
-                            <ButtonText className="font-medium">Add Data</ButtonText>
-                            {/* <ButtonSpinner /> */}
-                            <ButtonIcon as={AddIcon} />
-                            </Button>
-                    </ButtonGroup>
-                    {/* <Button
-                        size="xs" variant="solid" action="positive"
-                        onPress={() => {
-                            addData();
-                        }}
-                        >
-                        
-                    </Button> */}
-                        {/* <InputSlot className="pr-5" onPress={addData}>
-                            <InputIcon
-                                as={AddIcon}
-                                
-                                className="text-darkBlue-500"
-                            />
-                        </InputSlot> */}
-                </FormControl>
+                            }}
+                            >
+                            
+                        </Button> */}
+                            {/* <InputSlot className="pr-5" onPress={addData}>
+                                <InputIcon
+                                    as={AddIcon}
+                                    
+                                    className="text-darkBlue-500"
+                                />
+                            </InputSlot> */}
+                    </FormControl>
                 </VStack>
                 
                 {renderList()}

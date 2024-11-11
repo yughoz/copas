@@ -123,8 +123,8 @@ export const fetchUser = async (userId, setState) => {
 export const fetchCopas = async (sort_id, setCopas) => {
     try {
       let { data } = await supabase.from('copas').select(`*`).eq('sort_id', sort_id);
-        setCopas(data[0].datas);
-      return data[0].datas;
+      if (setCopas) data[0].datas;
+      return data[0];
     } catch (error) {
       console.log('error', error);
     }
@@ -134,6 +134,11 @@ export const addCopas = async () => {
     try {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 1);
+        const year = expiresAt.getFullYear();
+        const month = String(expiresAt.getMonth() + 1).padStart(2, '0'); // adds leading zero if needed
+        const day = String(expiresAt.getDate()).padStart(2, '0');         // adds leading zero if needed
+
+        const formattedDate = `${year}${month}${day}`;
 
         let { data } = await supabase
             .from('copas')
@@ -143,12 +148,26 @@ export const addCopas = async () => {
 
         if (data && data.length > 0) {
             const insertedId = data[0].id;
-            const temp = insertedId +""+expiresAt.getDay();
+            const temp = insertedId +""+expiresAt.getDate();
+
+            const { dataCopas, error } = await supabase
+              .from('copas')
+              .select('date_id, count:count(*)')
+              .group('date_id');
+
+            console.log('dataCopas:', dataCopas);
+            
+
+            if (error) {
+              console.error('Error:', error);
+            } else {
+              console.log('Counts by date_id:', data);
+            }
 
             const sort_id = parseInt(temp, 10).toString(36);
             let { dataUpdate } = await supabase
             .from('copas')
-            .update({ available_ids : temp, sort_id: sort_id, datas: [] })
+            .update({ available_ids : temp, sort_id: sort_id, datas: [],date_id : formattedDate })
             .eq('id', insertedId);
 
             return sort_id;

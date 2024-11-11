@@ -2,6 +2,7 @@ import React from "react";
 import { Button, ButtonText } from "@/components/ui/button";
 import { router } from "expo-router";
 import { SafeAreaView } from "@/components/ui/safe-area-view";
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import { VStack } from "@/components/ui/vstack";
 import { addCopas } from "@/lib/Store";
 const index = () => {
@@ -12,7 +13,7 @@ const index = () => {
           onPress={async () => {
             const sort_id = await addCopas();
             console.log("sort_id", sort_id);
-            router.push("/"+sort_id);
+            // router.push("/"+sort_id);
           }}
         >
           <ButtonText>Copy Paste</ButtonText>

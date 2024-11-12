@@ -12,8 +12,8 @@ const index = () => {
         <Button
           onPress={async () => {
             const sort_id = await addCopas();
-            console.log("sort_id", sort_id);
-            // router.push("/"+sort_id);
+            // console.log("sort_id", sort_id);
+            router.push("/"+sort_id);
           }}
         >
           <ButtonText>Copy Paste</ButtonText>

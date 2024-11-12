@@ -69,6 +69,7 @@
     "expo-updates": "~0.25.12",
     "expo-web-browser": "~13.0.3",
     "lucide-react-native": "^0.378.0",
+    "moment-timezone": "^0.5.46",
     "nativewind": "4.0.36",
     "react": "18.2.0",
     "react-dom": "18.2.0",

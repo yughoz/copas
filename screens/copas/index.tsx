@@ -36,7 +36,7 @@ const SplashScreenWithLeftBackground = () => {
     
     const { sort_id } = useLocalSearchParams();
     const { copasData } = useStore({ sort_id })
-    const showNewToast = () => {
+    const showNewToast = (message:string) => {
         const newId = Math.random()
         toast.show({
           id: newId,
@@ -48,7 +48,7 @@ const SplashScreenWithLeftBackground = () => {
               <Toast nativeID={uniqueToastId} action="error" variant="solid">
                 <ToastTitle>Error!</ToastTitle>
                 <ToastDescription>
-                  Permission denied to access clipboard
+                  {message}
                 </ToastDescription>
               </Toast>
             )
@@ -142,7 +142,8 @@ const SplashScreenWithLeftBackground = () => {
     useEffect(async () => {
         const datas = await fetchCopas(sort_id);
         if (datas === undefined) {
-            // router.push("/");
+            showNewToast('Invalid ID');
+            router.push("/");
         }
 
         // if (error) throw error;
@@ -169,7 +170,7 @@ const SplashScreenWithLeftBackground = () => {
             const text = await Clipboard.getStringAsync();
             setText(text);
         } catch (error) {
-            showNewToast();
+            showNewToast('Permission denied to access clipboard');
             Alert.alert('Error', 'Failed to access clipboard');
         }
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 // import 'react-native-url-polyfill/auto'
 import { createClient } from '@supabase/supabase-js';
+import moment from 'moment-timezone';
 
 export const supabase = createClient(
   process.env.EXPO_PUBLIC_SUPABASE_URL,
@@ -131,57 +132,67 @@ export const fetchCopas = async (sort_id, setCopas) => {
   };
 
 export const addCopas = async () => {
-    try {
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 1);
-        const year = expiresAt.getFullYear();
-        const month = String(expiresAt.getMonth() + 1).padStart(2, '0'); // adds leading zero if needed
-        const day = String(expiresAt.getDate()).padStart(2, '0');         // adds leading zero if needed
+  try {
+        // const expiresAt = new Date();
+        // expiresAt.setDate(expiresAt.getDate() + 1);
+        let dateNow = moment().tz('Asia/Jakarta');
+        let expiresAt = moment().add(1, 'days').tz('Asia/Jakarta');
+        
 
-        const formattedDate = `${year}${month}${day}`;
+
+        const { data : dataDelete, error : errDelete} = await supabase
+        .from('copas')
+        .delete()
+        .lt('expires_at', dateNow.format("YYYY-MM-DD HH:mm:ss"));
+
 
         let { data } = await supabase
             .from('copas')
-            .insert([{ expires_at: expiresAt }])
+            .insert([{ expires_at: expiresAt.format("YYYY-MM-DD HH:mm:ss") }])
             //   .insert([{ expires_at: expiresAt, data: datas, id_custom: id_custom }])
             .select();
 
         if (data && data.length > 0) {
-            const insertedId = data[0].id;
-            const temp = insertedId +""+expiresAt.getDate();
-
-            const { dataCopas, error } = await supabase
-              .from('copas')
-              .select('date_id, count:count(*)')
-              .group('date_id');
-
-            console.log('dataCopas:', dataCopas);
+            const insertedId = parseInt(data[0].id);
             
-
-            if (error) {
-              console.error('Error:', error);
-            } else {
-              console.log('Counts by date_id:', data);
-            }
-
-            const sort_id = parseInt(temp, 10).toString(36);
-            let { dataUpdate } = await supabase
+            const { data : idFirst, error: errorCount } = await supabase
             .from('copas')
-            .update({ available_ids : temp, sort_id: sort_id, datas: [],date_id : formattedDate })
-            .eq('id', insertedId);
-
-            return sort_id;
+            .select('id')
+            .order('id', { ascending: true })
+            .limit(1);
+            
+            
+            if (errorCount) {
+              console.error('Error:', errorCount);
+            } 
+            
+            
+            if (idFirst && idFirst.length > 0) {
+                const temp = (insertedId - parseInt(idFirst[0].id)) + "" + dateNow.day();
+                
+                
+                const sort_id = parseInt(temp, 10).toString(36);
+                let { data: dataUpdate } = await supabase
+                    .from('copas')
+                    .update({ available_ids: temp, sort_id: sort_id, datas: [] })
+                    .eq('id', insertedId);
+                return sort_id;
+            } else {
+                console.error('Error: idFirst is null or empty');
+                return 0;
+            }
         }
         return 0;
-    } catch (error) {
-        console.log('error', error);
-    }
+  }
+    catch (error) {
+      console.log('error', error);
+  }
 };
 
 export const addDataCopas = async (insertedId,dataParam) => {
     try {
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 1);
+        // const expiresAt = new Date();
+        // expiresAt.setDate(expiresAt.getDate() + 1);
         
 
         let { dataUpdate } = await supabase

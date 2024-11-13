@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button, ButtonText } from "@/components/ui/button";
 import { router } from "expo-router";
 import { SafeAreaView } from "@/components/ui/safe-area-view";
@@ -6,6 +6,15 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import { VStack } from "@/components/ui/vstack";
 import { addCopas } from "@/lib/Store";
 const index = () => {
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const sort_id = await addCopas();
+      // console.log("sort_id", sort_id);
+      router.push("/" + sort_id);
+    };
+    fetchData();
+  }, []);
   return (
     <SafeAreaView className="md:flex flex-col items-center justify-center md:w-full h-full">
       <VStack className="p-2 md:max-w-[440px] w-full" space="xl">
@@ -16,9 +25,9 @@ const index = () => {
             router.push("/"+sort_id);
           }}
         >
-          <ButtonText>Copy Paste</ButtonText>
+          <ButtonText>Generate link Copy Paste</ButtonText>
         </Button>
-        <Button
+        {/* <Button
           className="w-full"
           onPress={() => {
             router.push("auth/signin");
@@ -32,7 +41,7 @@ const index = () => {
           }}
         >
           <ButtonText>Sign up</ButtonText>
-        </Button>
+        </Button> */}
         {/* <Button
           onPress={() => {
             router.push("auth/forgot-password");

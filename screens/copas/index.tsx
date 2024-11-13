@@ -326,7 +326,7 @@ const SplashScreenWithLeftBackground = () => {
                         router.push("/");
                     }}
                     >
-                    <ButtonText className="font-medium">Home</ButtonText>
+                    <ButtonText className="font-medium">New Link Copy Paste</ButtonText>
                 </Button>
                 {/* <Button
                     className="w-full"

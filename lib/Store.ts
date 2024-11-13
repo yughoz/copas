@@ -168,10 +168,21 @@ export const addCopas = async () => {
             
             
             if (idFirst && idFirst.length > 0) {
-                const temp = (insertedId - parseInt(idFirst[0].id)) + "" + dateNow.day();
+                let temp = (insertedId - parseInt(idFirst[0].id)) + "" + dateNow.day();
                 
                 
-                const sort_id = parseInt(temp, 10).toString(36);
+                let sort_id = parseInt(temp, 10).toString(36);
+                const { data : checkExist, error: errorExist } = await supabase
+                .from('copas')
+                .select('id')
+                .eq('sort_id', sort_id)
+                .limit(1);
+
+                if (checkExist && checkExist.length > 0) {
+                  temp = insertedId;
+                  sort_id = parseInt(insertedId).toString(36);
+                }
+
                 let { data: dataUpdate } = await supabase
                     .from('copas')
                     .update({ available_ids: temp, sort_id: sort_id, datas: [] })
